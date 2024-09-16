@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 def main():
     load_dotenv()
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    user_prompt = input("Ask me anything!\n")
+    user_prompt = input("Prompt:\n")
+    print(user_prompt)
 
     messages: list[dict] = [{'role': 'user', 'content': user_prompt}]
 
