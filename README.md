@@ -3,6 +3,17 @@ INF1002 Programming Fundamentals Python Project Group 7
 
 Github Cheatsheet: https://training.github.com/downloads/github-git-cheat-sheet.pdf
 
+## Contributing
+
+**Setting up project environment**
+1. Open command prompt in desired directory.
+2. run ```git clone https://github.com/Just-Jam/inf002-chatbot.git```
+3. run ```cd inf002-chatbot```
+4. run ```pip install -r requirements.text```
+5. Create file named ".env" in project root folder
+6. Copy paste contents from "example.env" to ".env"
+7. Acquire API keys through DM
+
 ## Project Requirements
 
 ### Creating an Interactive Chatbot with APIs
