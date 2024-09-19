@@ -44,22 +44,33 @@ for msg in st.session_state.history:
 
 
 if usrinput:= st.chat_input("🤖Ask me anything here:"):
+    #Hard coded bot response vvvvvvvvv
     st.session_state.history.append(prompt(usrinput))
-    st.session_state.messages.append({"role": "user", "content": usrinput})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+
+    st.markdown(prompt(usrinput), unsafe_allow_html=True)
+    response = "Hello there!"
+    st.markdown(bot_message(response), unsafe_allow_html=True)
+    st.rerun()
+
+
+    #Dynamic bot response vvvvvvvvv (not yet working)
+
+    # st.session_state.history.append(prompt(usrinput))
+    # st.session_state.messages.append({"role": "user", "content": usrinput})
+    # with st.chat_message("user"):
+    #     st.markdown(prompt)
     
-    with st.chat_message("assistant"):
-        stream = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-        response = st.write_stream(stream)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # with st.chat_message("assistant"):
+    #     stream = client.chat.completions.create(
+    #         model=st.session_state["openai_model"],
+    #         messages=[
+    #             {"role": m["role"], "content": m["content"]}
+    #             for m in st.session_state.messages
+    #         ],
+    #         stream=True,
+    #     )
+    #     response = st.write_stream(stream)
+    # st.session_state.messages.append({"role": "assistant", "content": response})
 
 
     st.markdown(prompt(usrinput), unsafe_allow_html=True)
