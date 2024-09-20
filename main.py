@@ -1,7 +1,7 @@
 import json
 import streamlit as st
 import time
-import chatbot
+from api.azure import generate_response_gpt4om
 
 # styling the messages, should rename function name to style_user_message
 def prompt(message):
@@ -48,7 +48,7 @@ def main():
         st.session_state.history.append(prompt(usrinput))
         st.markdown(prompt(usrinput), unsafe_allow_html=True) # this line doesnt do anything?
 
-        response = "Hello there!"
+        response = generate_response_gpt4om(usrinput)
         st.session_state.history.append(bot_message(response))
         st.markdown(bot_message(response), unsafe_allow_html=True) # this line doesnt do anything?
         st.rerun()
