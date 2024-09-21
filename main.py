@@ -1,7 +1,7 @@
 import json
 import streamlit as st
 import time
-from api.azure import generate_response_gpt4om
+from api.azure import AzureOpenAI
 
 # styling the messages, should rename function name to style_user_message
 def prompt(message):
@@ -30,6 +30,7 @@ def main():
     if 'history' not in st.session_state:
         st.session_state.history = []
 
+    azureOpenAI = AzureOpenAI()
 
     st.markdown("""
         <style>
@@ -48,7 +49,7 @@ def main():
         st.session_state.history.append(prompt(usrinput))
         st.markdown(prompt(usrinput), unsafe_allow_html=True) # this line doesnt do anything?
 
-        response = generate_response_gpt4om(usrinput)
+        response = azureOpenAI.generate_response_gpt4om(usrinput)
         st.session_state.history.append(bot_message(response))
         st.markdown(bot_message(response), unsafe_allow_html=True) # this line doesnt do anything?
         st.rerun()
@@ -89,6 +90,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
 
 
 
