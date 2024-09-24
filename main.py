@@ -18,7 +18,7 @@ def syncMessagesWithDB(messages: list):
         content = message['content'][0]['text']
         msg_uuid = uuid.uuid4()
         save_msg(str(msg_uuid), chatTopic, role, content)
-    return 200
+    return True
 
 def fetchMessagesFromDB(chatTopic):
     chat_history = load_chat_history(chatTopic)
@@ -34,30 +34,29 @@ def response_generator(prompt, azureOpenAI):
         time.sleep(0.05)
 
 st.set_page_config(
-    page_title="Test",
+    page_title="Chat",
     page_icon="👋",
 )
-st.title("Simple chat")
-# # Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
 chatTopic = sidebar()
 azureOpenAI = getAzureopenAI()
+messages = []
 
 if chatTopic:
     # Load chat history for the selected session
-    st.session_state.messages = fetchMessagesFromDB(chatTopic)
-    azureOpenAI.update_chat_history(st.session_state.messages)
+    messages = fetchMessagesFromDB(chatTopic)
+    azureOpenAI.update_chat_history(messages)
     st.title(f"Chat Session: {chatTopic}")
+    #Remove system message
+    messages.pop(0)
 
 if chatTopic ==  "":
     st.title(f"Welcome to Info Prof!")
     st.text(f"To get started, create a new chat session on your left!")
     st.text(f"Alternatively, pick up where you left off by selscting a previous chat session!")
 
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
+# Display chat messages from history
+for message in messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"][0]['text'])
 
@@ -91,9 +90,8 @@ if prompt := st.chat_input("What is up?"):
     syncMessagesWithDB([user_message, assistant_message])
 
     # print("azure ", len(azureOpenAI.get_chat_history()))
-    # print('local history ', len(st.session_state.messages))
     # print('db: ', len(load_chat_history(chatTopic)))
-    # print(st.session_state.messages)
+    # print(load_chat_history(chatTopic))
 
 
 
