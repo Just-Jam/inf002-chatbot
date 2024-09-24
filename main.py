@@ -3,7 +3,7 @@ import streamlit as st
 import time
 from api.azure import generate_response_gpt4om
 
-# styling the messages, should rename function name to style_user_message
+# Styling for user messages
 def prompt(message):
     return f"""
        <div style="position: relative; background-color:#E1F5FE; padding:10px; border-radius:15px; margin-bottom:10px;
@@ -15,7 +15,7 @@ def prompt(message):
        </div>
        """
 
-# can rename to style_bot_message
+# Styling for bot messages
 def bot_message(message):
     return f"""
        <div style="position: relative; background-color:#C8E6C9; padding:10px; border-radius:15px; margin-bottom:10px;
@@ -26,10 +26,16 @@ def bot_message(message):
                        border-bottom:10px solid transparent;"></div>
        </div>
        """
+
 def main():
     if 'history' not in st.session_state:
-        st.session_state.history = []
+        st.session_state.history = [] # Holds the chat history
+        
+    if 'uploaded_file' not in st.session_state:
+        st.session_state.uploaded_file = None # Stores the content of the uploaded file
 
+    if 'file_uploaded_message_shown' not in st.session_state:
+        st.session_state.file_uploaded_message_shown = False # Flag to show upload message only once
 
     st.markdown("""
         <style>
@@ -40,20 +46,55 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
+    # Display the conversation history
     for msg in st.session_state.history:
-        st.markdown(msg, unsafe_allow_html=True)
+        st.markdown(msg, unsafe_allow_html=True) # Render each message in the chat history
 
+    # If no user input, greet the user
+    if len(st.session_state.history) == 0:
+        bot_greeting = "Hello! How can I assist you today?"
+        st.session_state.history.append(bot_message(bot_greeting)) # Append bot's greeting to history
+        st.markdown(bot_message(bot_greeting), unsafe_allow_html=True)  # Display greeting in chat
+
+    #File Upload
+    uploaded_file = st.file_uploader("Upload a text file", type="txt") # Allow user to upload a text file
+    
+    if uploaded_file is not None:
+        st.session_state.uploaded_file = uploaded_file.read().decode('utf-8') # Read and decode the uploaded file
+        
+        # Show upload message only once
+        if not st.session_state.file_uploaded_message_shown:
+            st.session_state.history.append(bot_message("File uploaded successfully. What do you want to do with the file?"))
+            st.markdown(bot_message("File uploaded successfully. What do you want to do with the file?"), unsafe_allow_html=True)
+            st.session_state.file_uploaded_message_shown = True # Set flag to true after showing the message
+
+    # User input for file-based query or general chat
     if usrinput := st.chat_input("🤖Ask me anything here:"):
-        # Hard coded bot response vvvvvvvvv
-        st.session_state.history.append(prompt(usrinput))
-        st.markdown(prompt(usrinput), unsafe_allow_html=True) # this line doesnt do anything?
+        st.session_state.history.append(prompt(usrinput)) # Append user message to history
+        st.markdown(prompt(usrinput), unsafe_allow_html=True) # Display user message in chat
 
-        response = generate_response_gpt4om(usrinput)
-        st.session_state.history.append(bot_message(response))
-        st.markdown(bot_message(response), unsafe_allow_html=True) # this line doesnt do anything?
-        st.rerun()
+        # Check if a file is uploaded first
+        if st.session_state.uploaded_file:
+            # Process user request related to the uploaded file
+            file_content = st.session_state.uploaded_file
+            if 'summarize' in usrinput.lower():
+                query = f"Summarize the following text: {file_content}" # Create summary query
+            elif 'analyze' in usrinput.lower():
+                query = f"Analyze the following text: {file_content}" # Create analysis query
+            else:
+                query = f"{usrinput}: {file_content}" # General query with user input and file content
+        else:
+            # If no file is uploaded, just respond to general chat
+            query = usrinput # Use the user input directly
 
-        # Dynamic bot response vvvvvvvvv (not yet working)
+        #Get response from the OpenAI/azure API
+        response = generate_response_gpt4om(query) # Call the API to get a response
+        st.session_state.history.append(bot_message(response)) # Append bot response to history
+        st.markdown(bot_message(response), unsafe_allow_html=True) # Display bot response in chat
+
+        st.rerun() # Rerun the app to update the display with new messages
+
+    # Dynamic bot response vvvvvvvvv (not yet working)
 
         # st.session_state.history.append(prompt(usrinput))
         # st.session_state.messages.append({"role": "user", "content": usrinput})
@@ -72,23 +113,10 @@ def main():
         #     response = st.write_stream(stream)
         # st.session_state.messages.append({"role": "assistant", "content": response})
 
-        st.markdown(prompt(usrinput), unsafe_allow_html=True)
-        response = "Hello there!"
-        st.markdown(bot_message(response), unsafe_allow_html=True)
-        st.rerun()
-
-    if len(st.session_state.history) > 0 and 'bot_replied' not in st.session_state:
-        # Delay bot response by 2 seconds
-        time.sleep(1)
-        bot_reply = "I'm just a bot!"
-        st.session_state.history.append(bot_message(bot_reply))
-        st.session_state.bot_replied = True
-
-        # Rerun the app to display the bot response after the delay
-        st.rerun()
+    # Reset the flag if the user decides to upload a new file
+    if uploaded_file is not None and usrinput and "upload" in usrinput.lower():
+        st.session_state.uploaded_file = None # Clear the uploaded file
+        st.session_state.file_uploaded_message_shown = False # Reset the message shown flag
 
 if __name__ == '__main__':
     main()
-
-
-
