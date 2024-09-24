@@ -13,6 +13,7 @@ print("here")
 # Display the rows
 for row in rows:
     print(row)
+    print(type(row))
 
 # Close the connection
 conn.close()

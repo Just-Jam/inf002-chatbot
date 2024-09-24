@@ -14,7 +14,7 @@ def init_db():
                  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     return conn
-init_db()
+
 # Save msg with session_id
 def save_msg(myUUID, session_id, sender, msg):
     if not session_id:  # Ensure session_id is not empty
@@ -27,7 +27,7 @@ def save_msg(myUUID, session_id, sender, msg):
     conn.close()
 
 # Load chat history based on session_id
-def load_chat_history(session_id):
+def load_chat_history(session_id) -> list[tuple]:
     conn = sqlite3.connect('chat_history.db')
     c = conn.cursor()
     c.execute("SELECT sender, msg FROM chats WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
