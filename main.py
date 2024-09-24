@@ -2,6 +2,7 @@ import json
 import streamlit as st
 import time
 from api.azure import generate_response_gpt4om
+import pyttsx3
 
 # Styling for user messages
 def prompt(message):
@@ -26,6 +27,14 @@ def bot_message(message):
                        border-bottom:10px solid transparent;"></div>
        </div>
        """
+
+
+#this define function is meant for TTS
+def speak_text (text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
 
 def main():
     if 'history' not in st.session_state:
@@ -92,6 +101,8 @@ def main():
         st.session_state.history.append(bot_message(response)) # Append bot response to history
         st.markdown(bot_message(response), unsafe_allow_html=True) # Display bot response in chat
 
+        speak_text(response)
+
         st.rerun() # Rerun the app to update the display with new messages
 
     # Dynamic bot response vvvvvvvvv (not yet working)
@@ -117,6 +128,7 @@ def main():
     if uploaded_file is not None and usrinput and "upload" in usrinput.lower():
         st.session_state.uploaded_file = None # Clear the uploaded file
         st.session_state.file_uploaded_message_shown = False # Reset the message shown flag
+
 
 if __name__ == '__main__':
     main()
