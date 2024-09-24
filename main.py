@@ -2,6 +2,7 @@ import json
 import streamlit as st
 import time
 from api.azure import generate_response_gpt4om
+import pyttsx3
 
 # styling the messages, should rename function name to style_user_message
 def prompt(message):
@@ -26,6 +27,13 @@ def bot_message(message):
                        border-bottom:10px solid transparent;"></div>
        </div>
        """
+
+#this define function is meant for TTS
+def speak_text (text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
 def main():
     if 'history' not in st.session_state:
         st.session_state.history = []
@@ -51,6 +59,9 @@ def main():
         response = generate_response_gpt4om(usrinput)
         st.session_state.history.append(bot_message(response))
         st.markdown(bot_message(response), unsafe_allow_html=True) # this line doesnt do anything?
+
+        speak_text(response)
+
         st.rerun()
 
         # Dynamic bot response vvvvvvvvv (not yet working)
@@ -75,6 +86,7 @@ def main():
         st.markdown(prompt(usrinput), unsafe_allow_html=True)
         response = "Hello there!"
         st.markdown(bot_message(response), unsafe_allow_html=True)
+        speak_text(response)
         st.rerun()
 
     if len(st.session_state.history) > 0 and 'bot_replied' not in st.session_state:
@@ -83,6 +95,9 @@ def main():
         bot_reply = "I'm just a bot!"
         st.session_state.history.append(bot_message(bot_reply))
         st.session_state.bot_replied = True
+
+        #call the speech_text function to speak out the response
+        speak_text(bot_reply)
 
         # Rerun the app to display the bot response after the delay
         st.rerun()
