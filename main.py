@@ -1,134 +1,94 @@
-import json
 import streamlit as st
 import time
-from api.azure import generate_response_gpt4om
-import pyttsx3
+import uuid
+from api.azure import AzureOpenAI
+from sidebar import  sidebar
+from database import load_chat_history, save_msg, clear_chat_history
+from utils.sql_api_utils import tuple_to_azure_message
+import streamlit_js_eval
 
-# Styling for user messages
-def prompt(message):
-    return f"""
-       <div style="position: relative; background-color:#E1F5FE; padding:10px; border-radius:15px; margin-bottom:10px;
-                   word-wrap: break-word;">
-           <p style="color:#000; font-size:16px; margin:0;">You: {message}</p>
-           <div style="position: absolute; top:10px; left:-10px; width:0; height:0; 
-                       border-top:10px solid transparent; border-right: 10px solid #E1F5FE;
-                       border-bottom:10px solid transparent;"></div>
-       </div>
-       """
+# @st.cache_resource
+def  getAzureopenAI():
+    azureOpenAI = AzureOpenAI()
+    return azureOpenAI
 
-# Styling for bot messages
-def bot_message(message):
-    return f"""
-       <div style="position: relative; background-color:#C8E6C9; padding:10px; border-radius:15px; margin-bottom:10px;
-                   word-wrap: break-word;">
-           <p style="color:#000; font-size:16px; margin:0;">Bot: {message}</p>
-           <div style="position: absolute; top:10px; right:-10px; width:0; height:0; 
-                       border-top:10px solid transparent; border-left: 10px solid #C8E6C9;
-                       border-bottom:10px solid transparent;"></div>
-       </div>
-       """
+def syncMessagesWithDB(messages: list):
+    for message in messages:
+        role = message['role']
+        content = message['content'][0]['text']
+        msg_uuid = uuid.uuid4()
+        save_msg(str(msg_uuid), chatTopic, role, content)
+    return True
 
+def fetchMessagesFromDB(chatTopic):
+    chat_history = load_chat_history(chatTopic)
+    messages = []
+    for entry in chat_history:
+        messages.append(tuple_to_azure_message(entry))
+    return messages
 
-#this define function is meant for TTS
-def speak_text (text):
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
+def response_generator(prompt, azureOpenAI):
+    response = azureOpenAI.generate_response_gpt4om(prompt)
+    for word in response.split():
+        yield word + " "
+        time.sleep(0.05)
 
+st.set_page_config(
+    page_title="Chat",
+    page_icon="👋",
+)
 
-def main():
-    if 'history' not in st.session_state:
-        st.session_state.history = [] # Holds the chat history
-        
-    if 'uploaded_file' not in st.session_state:
-        st.session_state.uploaded_file = None # Stores the content of the uploaded file
+chatTopic = sidebar()
+azureOpenAI = getAzureopenAI()
+messages = []
 
-    if 'file_uploaded_message_shown' not in st.session_state:
-        st.session_state.file_uploaded_message_shown = False # Flag to show upload message only once
+if chatTopic:
+    # Load chat history for the selected session
+    messages = fetchMessagesFromDB(chatTopic)
+    azureOpenAI.update_chat_history(messages)
+    st.title(f"Chat Session: {chatTopic}")
+    #Remove system message
+    messages.pop(0)
 
-    st.markdown("""
-        <style>
-        @keyframes float-up {
-            0% { transform: translateY(30px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-        </style>
-        """, unsafe_allow_html=True)
+if chatTopic ==  "":
+    st.title(f"Welcome to Info Prof!")
+    st.text(f"To get started, create a new chat session on your left!")
+    st.text(f"Alternatively, pick up where you left off by selscting a previous chat session!")
 
-    # Display the conversation history
-    for msg in st.session_state.history:
-        st.markdown(msg, unsafe_allow_html=True) # Render each message in the chat history
+# Display chat messages from history
+for message in messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"][0]['text'])
 
-    # If no user input, greet the user
-    if len(st.session_state.history) == 0:
-        bot_greeting = "Hello! How can I assist you today?"
-        st.session_state.history.append(bot_message(bot_greeting)) # Append bot's greeting to history
-        st.markdown(bot_message(bot_greeting), unsafe_allow_html=True)  # Display greeting in chat
+if chatTopic != "" and st.button("Clear Chat History"):
+    print(chatTopic)
+    clear_chat_history(chatTopic)
+    time.sleep(2)
+    st.success("History Cleared!")
+    # streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
-    #File Upload
-    uploaded_file = st.file_uploader("Upload a text file", type="txt") # Allow user to upload a text file
-    
-    if uploaded_file is not None:
-        st.session_state.uploaded_file = uploaded_file.read().decode('utf-8') # Read and decode the uploaded file
-        
-        # Show upload message only once
-        if not st.session_state.file_uploaded_message_shown:
-            st.session_state.history.append(bot_message("File uploaded successfully. What do you want to do with the file?"))
-            st.markdown(bot_message("File uploaded successfully. What do you want to do with the file?"), unsafe_allow_html=True)
-            st.session_state.file_uploaded_message_shown = True # Set flag to true after showing the message
+# Accept user input
+if prompt := st.chat_input("What is up?"):
+    # Display user message in chat message container
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    # Add user message to chat history
+    user_message = {
+        'role': 'user',
+        'content': [{"type": "text", "text": prompt}]
+    }
 
-    # User input for file-based query or general chat
-    if usrinput := st.chat_input("🤖Ask me anything here:"):
-        st.session_state.history.append(prompt(usrinput)) # Append user message to history
-        st.markdown(prompt(usrinput), unsafe_allow_html=True) # Display user message in chat
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
+    # Add assistant response to chat history
+    assistant_message = {
+        'role': 'assistant',
+        'content': [{"type": "text", "text": response}]
+    }
 
-        # Check if a file is uploaded first
-        if st.session_state.uploaded_file:
-            # Process user request related to the uploaded file
-            file_content = st.session_state.uploaded_file
-            if 'summarize' in usrinput.lower():
-                query = f"Summarize the following text: {file_content}" # Create summary query
-            elif 'analyze' in usrinput.lower():
-                query = f"Analyze the following text: {file_content}" # Create analysis query
-            else:
-                query = f"{usrinput}: {file_content}" # General query with user input and file content
-        else:
-            # If no file is uploaded, just respond to general chat
-            query = usrinput # Use the user input directly
+    syncMessagesWithDB([user_message, assistant_message])
 
-        #Get response from the OpenAI/azure API
-        response = generate_response_gpt4om(query) # Call the API to get a response
-        st.session_state.history.append(bot_message(response)) # Append bot response to history
-        st.markdown(bot_message(response), unsafe_allow_html=True) # Display bot response in chat
-
-        speak_text(response)
-
-        st.rerun() # Rerun the app to update the display with new messages
-
-    # Dynamic bot response vvvvvvvvv (not yet working)
-
-        # st.session_state.history.append(prompt(usrinput))
-        # st.session_state.messages.append({"role": "user", "content": usrinput})
-        # with st.chat_message("user"):
-        #     st.markdown(prompt)
-
-        # with st.chat_message("assistant"):
-        #     stream = client.chat.completions.create(
-        #         model=st.session_state["openai_model"],
-        #         messages=[
-        #             {"role": m["role"], "content": m["content"]}
-        #             for m in st.session_state.messages
-        #         ],
-        #         stream=True,
-        #     )
-        #     response = st.write_stream(stream)
-        # st.session_state.messages.append({"role": "assistant", "content": response})
-
-    # Reset the flag if the user decides to upload a new file
-    if uploaded_file is not None and usrinput and "upload" in usrinput.lower():
-        st.session_state.uploaded_file = None # Clear the uploaded file
-        st.session_state.file_uploaded_message_shown = False # Reset the message shown flag
-
-
-if __name__ == '__main__':
-    main()
+    # print("azure ", len(azureOpenAI.get_chat_history()))
+    # print('db: ', len(load_chat_history(chatTopic)))
+    # print(load_chat_history(chatTopic))
