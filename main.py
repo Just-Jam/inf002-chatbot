@@ -57,8 +57,14 @@ if chatTopic ==  "":
 
 # Display chat messages from history
 for message in messages:
+    message_content = message["content"][0]['text']
     with st.chat_message(message["role"]):
-        st.markdown(message["content"][0]['text'])
+        col1, col2 = st.columns([9,1])
+        with col1:
+            st.markdown(message_content)
+        with col2:
+            st.button(label="TTS", key=uuid.uuid4())
+            #Add TTS functionality
 
 if chatTopic != "" and st.button("Clear Chat History"):
     print(chatTopic)
