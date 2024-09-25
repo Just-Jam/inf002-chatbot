@@ -92,7 +92,3 @@ if prompt := st.chat_input("What is up?"):
     # print("azure ", len(azureOpenAI.get_chat_history()))
     # print('db: ', len(load_chat_history(chatTopic)))
     # print(load_chat_history(chatTopic))
-
-
-
-
