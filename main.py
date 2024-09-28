@@ -6,6 +6,7 @@ from components.sidebar import sidebar
 from components.file_upload import file_upload
 from database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
+# import streamlit_js_eval
 
 # @st.cache_resource
 def  getAzureopenAI():
@@ -54,7 +55,7 @@ if chatTopic:
 if chatTopic ==  "":
     st.title(f"Welcome to Info Prof!")
     st.text(f"To get started, create a new chat session on your left!")
-    st.text(f"Alternatively, pick up where you left off by selscting a previous chat session!")
+    st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
 
 # Display chat messages from history
 for message in messages:
