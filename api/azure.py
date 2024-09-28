@@ -17,7 +17,7 @@ class AzureOpenAI:
     API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
     ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/gpt-4o-mini-25k/chat/completions?api-version=2024-02-15-preview"
     DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information."
-    MAX_MESSAGE_COUNT = 20
+    MAX_MESSAGE_COUNT = 30
 
     def __init__(self):
         self._messages: list[dict] = [

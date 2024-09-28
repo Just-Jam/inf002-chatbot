@@ -4,6 +4,7 @@ import base64
 from dotenv import load_dotenv
 import json
 
+#API Testing
 def main():
     # Configuration
     load_dotenv()
@@ -42,7 +43,7 @@ def main():
     # Handle the response as needed (e.g., print or process)
     # print(response.json())
     print(response.json()['choices'][0]['message']['content'])
-    with open('response.json', 'w') as f:
+    with open('../response.json', 'w') as f:
         json.dump(response.json(), f)
 
 if __name__ == '__main__':

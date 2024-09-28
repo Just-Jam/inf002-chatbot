@@ -2,10 +2,10 @@ import streamlit as st
 import time
 import uuid
 from api.azure import AzureOpenAI
-from sidebar import  sidebar
+from components.sidebar import sidebar
+from components.file_upload import file_upload
 from database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
-import streamlit_js_eval
 
 # @st.cache_resource
 def  getAzureopenAI():
@@ -49,6 +49,7 @@ if chatTopic:
     st.title(f"Chat Session: {chatTopic}")
     #Remove system message
     messages.pop(0)
+    file_upload()
 
 if chatTopic ==  "":
     st.title(f"Welcome to Info Prof!")
@@ -63,8 +64,8 @@ for message in messages:
         with col1:
             st.markdown(message_content)
         with col2:
-            st.button(label="TTS", key=uuid.uuid4())
-            #Add TTS functionality
+            if st.button(label="TTS", key=uuid.uuid4(), use_container_width=True):
+                print("TTS")
 
 if chatTopic != "" and st.button("Clear Chat History"):
     print(chatTopic)
