@@ -8,7 +8,7 @@ def file_upload():
         st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
 
         # File Upload
-    uploaded_file = st.file_uploader("Upload a text file", type="txt")  # Allow user to upload a text file
+    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "pdf"])  # Allow user to upload a text file
 
     if uploaded_file is not None:
         st.session_state.uploaded_file = uploaded_file.read().decode('utf-8')  # Read and decode the uploaded file
