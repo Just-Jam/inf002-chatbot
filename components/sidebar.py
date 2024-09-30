@@ -1,12 +1,11 @@
 import streamlit as st
 from database import get_sessions
 
-def sidebar():
+def sidebar(group_id):
     st.sidebar.title("Previous chat topics")
     
     # Get all existing chat sessions
-    sessions = get_sessions()
-
+    sessions = get_sessions(group_id)
 
     # Create a selectbox for existing sessions or a "New Chat" option
     session_selection = st.sidebar.selectbox("Select a session", ["Select chat topics"] + sessions)

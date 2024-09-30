@@ -1,5 +1,7 @@
 import sqlite3
 
+from database import init_db
+
 DB = 'test.db'
 
 def create_tables():
@@ -42,9 +44,9 @@ def create_conversation(conversation_title: str) -> int:
     return conversation_id
 
 def save_message(sender: str, message: str, conversation_id: int = 0, conversation_title = None) -> int:
-    if conversation_id == 0:
-        #Auto create new conversation if no pass conversation_id
-        conversation_id = create_conversation(conversation_title)
+    # if conversation_id == 0:
+    #     #Auto create new conversation if no pass conversation_id
+    #     conversation_id = create_conversation(conversation_title)
 
     conn = sqlite3.connect(DB)
     c = conn.cursor()
@@ -81,7 +83,7 @@ def get_all_conversations() -> list[str]:
     c.execute("SELECT * FROM Conversations")
     conversations = c.fetchall()
     conn.close()
-    return [title[1] for title in conversations]
+    return conversations
 
 
 def delete_conversation(conversation_id):
@@ -95,5 +97,7 @@ def delete_conversation(conversation_id):
 # msg = load_messages_from_conversation(3)
 # print(msg)
 # delete_conversation(3)
-convs = get_all_conversations()
-print(convs)
+# convs = get_all_conversations()
+# print(convs)
+
+create_tables()

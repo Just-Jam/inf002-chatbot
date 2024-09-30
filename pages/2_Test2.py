@@ -43,7 +43,7 @@ def main():
         st.session_state.history = []  # Holds the chat history
 
     if 'uploaded_file' not in st.session_state:
-        st.session_state.uploaded_file = None  # Stores the content of the uploaded file
+        st.session_state.uploaded_file_content = None  # Stores the content of the uploaded file
 
     if 'file_uploaded_message_shown' not in st.session_state:
         st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
@@ -71,7 +71,7 @@ def main():
     uploaded_file = st.file_uploader("Upload a text file", type="txt")  # Allow user to upload a text file
 
     if uploaded_file is not None:
-        st.session_state.uploaded_file = uploaded_file.read().decode('utf-8')  # Read and decode the uploaded file
+        st.session_state.uploaded_file_content = uploaded_file.read().decode('utf-8')  # Read and decode the uploaded file
 
         # Show upload message only once
         if not st.session_state.file_uploaded_message_shown:
@@ -87,9 +87,9 @@ def main():
         st.markdown(prompt(usrinput), unsafe_allow_html=True)  # Display user message in chat
 
         # Check if a file is uploaded first
-        if st.session_state.uploaded_file:
+        if st.session_state.uploaded_file_content:
             # Process user request related to the uploaded file
-            file_content = st.session_state.uploaded_file
+            file_content = st.session_state.uploaded_file_content
             if 'summarize' in usrinput.lower():
                 query = f"Summarize the following text: {file_content}"  # Create summary query
             elif 'analyze' in usrinput.lower():
@@ -111,7 +111,7 @@ def main():
 
     # Reset the flag if the user decides to upload a new file
     if uploaded_file is not None and usrinput and "upload" in usrinput.lower():
-        st.session_state.uploaded_file = None  # Clear the uploaded file
+        st.session_state.uploaded_file_content = None  # Clear the uploaded file
         st.session_state.file_uploaded_message_shown = False  # Reset the message shown flag
 
 
