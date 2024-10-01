@@ -9,7 +9,7 @@ from database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
 # import streamlit_js_eval
 
-def file_upload():
+def file_upload(azureOpenAI):
     if 'uploaded_file' not in st.session_state:
         st.session_state.uploaded_file_content = None  # Stores the content of the uploaded file
 
@@ -17,11 +17,10 @@ def file_upload():
         st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
 
         # File Upload
-    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "pdf"])  # Allow user to upload a text fil
+    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "docx", "pdf"])  # Allow user to upload a text fil
 
     if uploaded_file:
         st.session_state.uploaded_file_content = uploaded_file.read().decode('utf-8')  # Read and decode the uploaded file
-        print("2. Uploaded file: ", st.session_state.uploaded_file_content)
         # Show upload message only once
         if not st.session_state.file_uploaded_message_shown:
             st.markdown("File uploaded successfully. What do you want to do with the file?",unsafe_allow_html=True)
@@ -29,6 +28,10 @@ def file_upload():
 
         if st.button("Summarize"):
             summarize_text(st.session_state.uploaded_file_content)
+
+        if st.button("Test"):
+            azureOpenAI.generate_embeddings(uploaded_file)
+
 
 
 
@@ -80,7 +83,7 @@ GROUP_ID = "file_assistant"
 chatTopic = sidebar(GROUP_ID)
 azureOpenAI = getAzureopenAI()
 messages = []
-file_upload()
+file_upload(azureOpenAI)
 
 if chatTopic:
     # Load chat history for the selected session
