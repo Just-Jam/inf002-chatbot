@@ -17,8 +17,7 @@ def syncMessagesWithDB(messages: list):
     for message in messages:
         role = message['role']
         content = message['content'][0]['text']
-        msg_uuid = uuid.uuid4()
-        save_msg(str(msg_uuid), chatTopic, role, content)
+        save_msg(chatTopic, role, content)
     return True
 
 def fetchMessagesFromDB(chatTopic):
@@ -35,11 +34,11 @@ def response_generator(prompt, azureOpenAI):
         time.sleep(0.05)
 
 st.set_page_config(
-    page_title="Chat",
+    page_title="Chatbot",
     page_icon="👋",
 )
 
-chatTopic = sidebar()
+chatTopic = sidebar("main")
 azureOpenAI = getAzureopenAI()
 messages = []
 
@@ -50,7 +49,6 @@ if chatTopic:
     st.title(f"Chat Session: {chatTopic}")
     #Remove system message
     messages.pop(0)
-    file_upload()
 
 if chatTopic ==  "":
     st.title(f"Welcome to Info Prof!")

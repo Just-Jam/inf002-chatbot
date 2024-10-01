@@ -2,10 +2,10 @@ import streamlit as st
 import time
 from api.azure import AzureOpenAI
 from database import save_msg, load_chat_history, clear_chat_history
-from streamlit_js_eval import streamlit_js_eval
-from streamlit.sidebar import sidebar
+# from streamlit_js_eval import streamlit_js_eval
+from components.sidebar import sidebar
 import uuid
-from streamlit.stylings import promptStyle, botMessageStyle
+from components.stylings import promptStyle, botMessageStyle
 
 # styling the messages, should rename function name to style_user_message
 

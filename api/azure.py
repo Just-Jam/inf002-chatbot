@@ -1,6 +1,8 @@
 import os
 import requests
 from dotenv import load_dotenv
+from langchain_openai import AzureOpenAIEmbeddings
+from openai import embeddings, azure_endpoint, api_key
 
 load_dotenv()
 #TODO:  Sync DB with  azure chat history
@@ -15,7 +17,8 @@ azureOpenAI.generate_response_gpt4om(prompt)
 '''
 class AzureOpenAI:
     API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/gpt-4o-mini-25k/chat/completions?api-version=2024-02-15-preview"
+    GPT_4OM_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/gpt-4o-mini-25k/chat/completions?api-version=2024-02-15-preview"
+    EMBEDDING_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/text-embedding-3-small/embeddings?api-version=2023-05-15"
     DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information."
     MAX_MESSAGE_COUNT = 30
 
@@ -48,7 +51,7 @@ class AzureOpenAI:
         }
         # Send request
         try:
-            response = requests.post(self.ENDPOINT, headers=headers, json=payload)
+            response = requests.post(self.GPT_4OM_ENDPOINT, headers=headers, json=payload)
             response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
         except requests.RequestException as e:
             raise SystemExit(f"Failed to make the request. Error: {e}")
@@ -77,3 +80,12 @@ class AzureOpenAI:
         }
         self._messages.insert(0, sys_msg)
         return True
+
+    def generate_embeddings(self, file):
+        embeddings = AzureOpenAIEmbeddings(
+            model= "text-embedding-3-small",
+            azure_endpoint= self.EMBEDDING_ENDPOINT,
+            api_key= self.API_KEY
+        )
+        # print(embeddings)
+        return "In Progress"
