@@ -1,5 +1,4 @@
 from cProfile import label
-
 import streamlit as st
 import time
 import uuid
@@ -7,7 +6,60 @@ from api.azure import AzureOpenAI
 from components.sidebar import sidebar
 from database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
+import fitz  # PyMuPDF for handling PDF files
+from docx import Document # Document class from the python-docx library
 # import streamlit_js_eval
+
+# Function to handle .txt files
+def extract_text_from_txt(file):
+    """Extract text from a plain text (.txt) file"""
+    return file.read().decode('utf-8')
+
+# Function to handle .docx files
+def extract_text_from_docx(file):
+    """Extract text from a DOCX file using python-docx"""
+    doc = Document(file)
+    full_text = []
+    for paragraph in doc.paragraphs:
+        full_text.append(paragraph.text)
+    return '\n'.join(full_text)
+
+# Function to handle .pdf files
+def extract_text_from_pdf(file):
+    """Extract text from a PDF file using PyMuPDF (fitz)"""
+    pdf_document = fitz.open(stream=file.read(), filetype="pdf")
+    text = ""
+    for page_num in range(len(pdf_document)):
+        page = pdf_document.load_page(page_num)
+        text += page.get_text()
+    pdf_document.close()
+    return text
+
+# Function to handle file uploads
+def handle_file_upload(uploaded_file):
+    """Extract text from uploaded files based on their type."""
+    # Mapping file types to respective extraction functions
+    file_type_handlers = {
+        "text/plain": extract_text_from_txt,  # Handler for .txt files
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": extract_text_from_docx,  # Handler for .docx files
+        "application/pdf": extract_text_from_pdf,  # Handler for .pdf files
+    }
+    
+    # Get the appropriate handler function based on the uploaded file type
+    handler = file_type_handlers.get(uploaded_file.type)
+    
+    if handler:
+        try:
+            # Use the handler function to extract text from the uploaded file
+            return handler(uploaded_file)
+        except Exception as e:
+            # Show an error message if there is an issue during file processing
+            st.error(f"Error processing file: {e}")
+    else:
+        # If the file type is unsupported, notify the user
+        st.error("Unsupported file type. Please upload a .txt, .docx, or .pdf file.")
+    
+    return None  # Return None if no valid handler was found or an error occurred
 
 def file_upload(azureOpenAI):
     if 'uploaded_file' not in st.session_state:
@@ -16,23 +68,24 @@ def file_upload(azureOpenAI):
     if 'file_uploaded_message_shown' not in st.session_state:
         st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
 
-        # File Upload
-    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "docx", "pdf"])  # Allow user to upload a text fil
+    # File Upload
+    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "docx", "pdf"])  # Allow user to upload a text file
 
     if uploaded_file:
-        st.session_state.uploaded_file_content = uploaded_file.read().decode('utf-8')  # Read and decode the uploaded file
+        # Call the handle_file_upload function to extract text
+        st.session_state.uploaded_file_content = handle_file_upload(uploaded_file)
+
         # Show upload message only once
-        if not st.session_state.file_uploaded_message_shown:
-            st.markdown("File uploaded successfully. What do you want to do with the file?",unsafe_allow_html=True)
+        if st.session_state.uploaded_file_content and not st.session_state.file_uploaded_message_shown:
+            st.markdown("File uploaded successfully. What do you want to do with the file?", unsafe_allow_html=True)
             st.session_state.file_uploaded_message_shown = True
 
+        # Provide options to summarize
         if st.button("Summarize"):
             summarize_text(st.session_state.uploaded_file_content)
 
         if st.button("Test"):
-            azureOpenAI.generate_embeddings(uploaded_file)
-
-
+            azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
 
 
 # @st.cache_resource
@@ -138,3 +191,4 @@ if prompt := st.chat_input("What is up?"):
     }
 
     syncMessagesWithDB([user_message, assistant_message])
+
