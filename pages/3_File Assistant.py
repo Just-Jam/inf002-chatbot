@@ -61,32 +61,6 @@ def handle_file_upload(uploaded_file):
     
     return None  # Return None if no valid handler was found or an error occurred
 
-def file_upload(azureOpenAI):
-    if 'uploaded_file' not in st.session_state:
-        st.session_state.uploaded_file_content = None  # Stores the content of the uploaded file
-
-    if 'file_uploaded_message_shown' not in st.session_state:
-        st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
-
-    # File Upload
-    uploaded_file = st.file_uploader("Upload a text file", type=["txt", "docx", "pdf"])  # Allow user to upload a text file
-
-    if uploaded_file:
-        # Call the handle_file_upload function to extract text
-        st.session_state.uploaded_file_content = handle_file_upload(uploaded_file)
-
-        # Show upload message only once
-        if st.session_state.uploaded_file_content and not st.session_state.file_uploaded_message_shown:
-            st.markdown("File uploaded successfully. What do you want to do with the file?", unsafe_allow_html=True)
-            st.session_state.file_uploaded_message_shown = True
-
-        # Provide options to summarize
-        if st.button("Summarize"):
-            summarize_text(st.session_state.uploaded_file_content)
-
-        if st.button("Test"):
-            azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
-
 
 # @st.cache_resource
 def  getAzureopenAI():
@@ -125,6 +99,7 @@ def summarize_text(content):
     }
 
     syncMessagesWithDB([assistant_message])
+    st.rerun()
 
 
 st.set_page_config(
@@ -136,7 +111,33 @@ GROUP_ID = "file_assistant"
 chatTopic = sidebar(GROUP_ID)
 azureOpenAI = getAzureopenAI()
 messages = []
-file_upload(azureOpenAI)
+summarize_btn = None
+
+#file upload UI
+if 'uploaded_file' not in st.session_state:
+    st.session_state.uploaded_file_content = None  # Stores the content of the uploaded file
+
+if 'file_uploaded_message_shown' not in st.session_state:
+    st.session_state.file_uploaded_message_shown = False  # Flag to show upload message only once
+
+# File Upload
+uploaded_file = st.file_uploader("Upload a text file", type=["txt", "docx", "pdf"])  # Allow user to upload a text file
+
+if uploaded_file:
+    # Call the handle_file_upload function to extract text
+    st.session_state.uploaded_file_content = handle_file_upload(uploaded_file)
+
+    # Show upload message only once
+    if st.session_state.uploaded_file_content and not st.session_state.file_uploaded_message_shown:
+        st.markdown("File uploaded successfully. What do you want to do with the file?", unsafe_allow_html=True)
+        st.session_state.file_uploaded_message_shown = True
+
+    # Provide options to summarize
+    summarize_btn = st.button("Summarize")
+
+    if st.button("Test"):
+        azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
+
 
 if chatTopic:
     # Load chat history for the selected session
@@ -191,4 +192,8 @@ if prompt := st.chat_input("What is up?"):
     }
 
     syncMessagesWithDB([user_message, assistant_message])
+    st.rerun()
+
+if summarize_btn:
+    summarize_text(st.session_state.uploaded_file_content)
 
