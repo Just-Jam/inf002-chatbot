@@ -51,11 +51,15 @@ if chatTopic:
     #Remove system message
     messages.pop(0)
 
-if chatTopic ==  "":
+if chatTopic ==  "" and 'username' not in st.session_state:
     st.title(f"Welcome to Info Prof!")
     st.text(f"To get started, create a new chat session on your left!")
     st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+elif 'username' in st.session_state:
+    user_id = st.session_state['username']
+    st.title(f"Welcome Back {user_id}!")
 
+    
 # Display chat messages from history
 for index, message in enumerate(messages):
     message_content = message["content"][0]['text']
