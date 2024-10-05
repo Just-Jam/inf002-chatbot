@@ -65,6 +65,7 @@ for index, message in enumerate(messages):
             st.markdown(message_content)
         with col2:
             if st.button(label="Play TTS", key=f'play-{index}', use_container_width=True):
+                print("hello")
                 audio_file = text_to_speech(message_content)  # Converting text to speech
                 st.audio(audio_file, format="audio/mp3", start_time=0)  # This is for playing audio
                 os.remove(audio_file)  # Delete the audio file after playbacke audio file after playback
@@ -97,7 +98,7 @@ if prompt := st.chat_input("What is up?"):
     }
 
     syncMessagesWithDB([user_message, assistant_message])
-    st.rerun()
+    # st.rerun()
 
     # print("azure ", len(azureOpenAI.get_chat_history()))
     # print('db: ', len(load_chat_history(chatTopic)))

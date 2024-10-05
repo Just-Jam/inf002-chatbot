@@ -1,8 +1,12 @@
 import os
 import requests
 from dotenv import load_dotenv
-from langchain_openai import AzureOpenAIEmbeddings
-from openai import embeddings, azure_endpoint, api_key
+from openai import AzureOpenAI as AOI
+import json
+import httpx
+import uuid
+# from langchain_openai import AzureOpenAIEmbeddings
+# from openai import embeddings, azure_endpoint, api_key
 
 load_dotenv()
 #TODO:  Sync DB with  azure chat history
@@ -17,6 +21,7 @@ azureOpenAI.generate_response_gpt4om(prompt)
 '''
 class AzureOpenAI:
     API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+    ENDPOINT = "https://openaisit.openai.azure.com/"
     GPT_4OM_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/gpt-4o-mini-25k/chat/completions?api-version=2024-02-15-preview"
     EMBEDDING_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/text-embedding-3-small/embeddings?api-version=2023-05-15"
     DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information."
@@ -81,11 +86,42 @@ class AzureOpenAI:
         self._messages.insert(0, sys_msg)
         return True
 
-    def generate_embeddings(self, file):
-        embeddings = AzureOpenAIEmbeddings(
-            model= "text-embedding-3-small",
-            azure_endpoint= self.EMBEDDING_ENDPOINT,
-            api_key= self.API_KEY
+    # def generate_embeddings(self, file):
+    #     embeddings = AzureOpenAIEmbeddings(
+    #         model= "text-embedding-3-small",
+    #         azure_endpoint= self.EMBEDDING_ENDPOINT,
+    #         api_key= self.API_KEY
+    #     )
+    #     # print(embeddings)
+    #     return "In Progress"
+    def generate_image_dalle3(self, prompt: str):
+        client = AOI(
+            api_version="2024-02-01",
+            api_key=self.API_KEY,
+            azure_endpoint=self.ENDPOINT
         )
-        # print(embeddings)
-        return "In Progress"
+
+        result = client.images.generate(
+            model="dall-e-3",  # the name of your DALL-E 3 deployment
+            prompt=prompt,
+            n=1
+        )
+
+        # Set the directory for the stored image
+        image_dir = os.path.join(os.curdir, 'images')
+
+        # If the directory doesn't exist, create it
+        if not os.path.isdir(image_dir):
+            os.mkdir(image_dir)
+
+        # Initialize the image path (note the filetype should be png)
+        image_path = os.path.join(image_dir, f'image_{uuid.uuid4()}.png')
+
+        # Retrieve the generated image
+        json_response = json.loads(result.model_dump_json())
+        image_url = json_response["data"][0]["url"]  # extract image URL from response
+        generated_image = httpx.get(image_url).content  # download the image
+        with open(image_path, "wb") as image_file:
+            image_file.write(generated_image)
+
+        return image_path
