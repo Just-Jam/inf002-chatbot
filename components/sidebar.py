@@ -1,5 +1,5 @@
 import streamlit as st
-from database import get_sessions
+from database.database import get_sessions
 
 def sidebar(group_id):
     st.sidebar.title("Previous chat topics")

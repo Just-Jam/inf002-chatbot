@@ -1,11 +1,14 @@
 import streamlit as st
 import time
 from api.azure import AzureOpenAI
+from menu import menu
 
 st.set_page_config(
     page_title="Image Generator",
     page_icon="👋",
 )
+
+menu()
 
 prompt = st.text_area(label="What kind of image do you want to generate?")
 generate_btn = st.button("Generate Image")

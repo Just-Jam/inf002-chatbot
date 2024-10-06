@@ -30,9 +30,10 @@ class UserAuth:
                 username_of_registered_user, \
                 name_of_registered_user = self.authenticator.register_user(roles=['user'])
             if email_of_registered_user:
-                with open('../auth_config.yaml', 'w') as file:
+                with open('auth_config.yaml', 'w') as file:
                     yaml.dump(self.config, file, default_flow_style=False)
                 st.success('User registered successfully')
+                st.switch_page("pages/Login.py")
         except Exception as e:
             st.error(e)
 

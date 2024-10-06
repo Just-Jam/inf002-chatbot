@@ -1,24 +1,12 @@
 import streamlit as st
 import time
-import uuid
 import os
 from api.azure import AzureOpenAI
 from components.sidebar import sidebar
-from database import load_chat_history, save_msg, clear_chat_history
+from database.database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
 from utils.text_to_speech import text_to_speech
 from menu import menu
-from utils.user_auth import UserAuth
-# import streamlit_js_eval
-
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
-
-# @st.cache_resource
-def  getAzureopenAI():
-    azureOpenAI = AzureOpenAI()
-    return azureOpenAI
 
 def syncMessagesWithDB(messages: list, chatTopic):
     for message in messages:
@@ -48,7 +36,7 @@ def main():
 
     menu()
     chatTopic = sidebar("main")
-    azureOpenAI = getAzureopenAI()
+    azureOpenAI = AzureOpenAI()
     messages = []
 
     if chatTopic:

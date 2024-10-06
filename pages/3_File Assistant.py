@@ -1,14 +1,13 @@
-from cProfile import label
 import streamlit as st
 import time
 import uuid
 from api.azure import AzureOpenAI
 from components.sidebar import sidebar
-from database import load_chat_history, save_msg, clear_chat_history
+from database.database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
 import fitz  # PyMuPDF for handling PDF files
 from docx import Document # Document class from the python-docx library
-# import streamlit_js_eval
+from menu import menu
 
 # Function to handle .txt files
 def extract_text_from_txt(file):
@@ -106,6 +105,8 @@ st.set_page_config(
     page_title="File Assistant",
     page_icon="👋",
 )
+menu()
+
 
 GROUP_ID = "file_assistant"
 chatTopic = sidebar(GROUP_ID)

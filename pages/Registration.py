@@ -1,8 +1,8 @@
 import streamlit as st
-from utils.user_auth import UserAuth
+from menu import menu
 
 def RegisterPage():
-    auth = UserAuth()
+    auth = menu()
     auth.registration_widget()
 
 if __name__ == '__main__':
