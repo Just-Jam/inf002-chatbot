@@ -1,5 +1,7 @@
 from gtts import gTTS
 import uuid
+import streamlit as st
+import os
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
     tts = gTTS(text=text, lang='en')

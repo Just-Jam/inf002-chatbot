@@ -4,14 +4,13 @@ import uuid
 import os
 from api.azure import AzureOpenAI
 from components.sidebar import sidebar
-from components.file_upload import file_upload
 from database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
 from utils.text_to_speech import text_to_speech
 # import streamlit_js_eval
 
 # @st.cache_resource
-def getAzureopenAI():
+def  getAzureopenAI():
     azureOpenAI = AzureOpenAI()
     return azureOpenAI
 
@@ -29,13 +28,11 @@ def fetchMessagesFromDB(chatTopic):
         messages.append(tuple_to_azure_message(entry))
     return messages
 
-def generate_and_store_tts(text):
-    audio_path = text_to_speech(text)
-    return audio_path
-
 def response_generator(prompt, azureOpenAI):
     response = azureOpenAI.generate_response_gpt4om(prompt)
-    return response  # Return the response for tts
+    for word in response.split():
+        yield word + " "
+        time.sleep(0.05)
 
 st.set_page_config(
     page_title="Chatbot",
@@ -70,8 +67,7 @@ if chatTopic:
                 st.success("History Cleared!")
     
     #Remove system message
-    if st.session_state.messages and st.session_state.messages[0]['role'] == 'system':
-        st.session_state.messages.pop(0)
+    #messages.pop(0)
 
 #if chatTopic == "":
     #st.title(f"Welcome to Info Prof!")
@@ -116,14 +112,10 @@ if prompt := st.chat_input("What is up?"):
         'role': 'user',
         'content': [{"type": "text", "text": prompt}]
     }
-    
-    # Generate assistant response
-    response = response_generator(prompt, azureOpenAI=azureOpenAI)
-    
-    # Display assistant's response
+
+    # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        st.markdown(response)
-    
+        response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
     # Add assistant response to chat history
     assistant_message = {
         'role': 'assistant',
@@ -142,8 +134,8 @@ if prompt := st.chat_input("What is up?"):
 
 
     syncMessagesWithDB([user_message, assistant_message])
+    # st.rerun()
 
     # print("azure ", len(azureOpenAI.get_chat_history()))
     # print('db: ', len(load_chat_history(chatTopic)))
     # print(load_chat_history(chatTopic))
-
