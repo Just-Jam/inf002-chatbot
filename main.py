@@ -46,46 +46,64 @@ st.set_page_config(
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-
 chatTopic = sidebar("main")
 azureOpenAI = getAzureopenAI() 
-
 
 if chatTopic:
     # Load chat history for the selected session
     st.session_state.messages = fetchMessagesFromDB(chatTopic) 
     azureOpenAI.update_chat_history(st.session_state.messages) 
-    st.title(f"Chat Session: {chatTopic}")
+    # st.title(f"Chat Session: {chatTopic}")
+    # Create columns for title and button
+    col1, col2 = st.columns([9, 2])  # Adjust the column width as needed
+    with col1:
+        st.title(f"Chat Session: {chatTopic}")
+    success_message_placeholder = st.empty()
+    with col2:
+        if st.button(label="Delete 🗑️", key="clear_chat_history_button", use_container_width=True):
+            print(chatTopic)
+            clear_chat_history(chatTopic)
+            st.session_state.messages = []  # This is for clearing session state messages
+            time.sleep(2)
+            #st.success("History Cleared!")
+            with success_message_placeholder.container():
+                st.success("History Cleared!")
     
     #Remove system message
     if st.session_state.messages and st.session_state.messages[0]['role'] == 'system':
         st.session_state.messages.pop(0)
 
-if chatTopic == "":
+#if chatTopic == "":
+    #st.title(f"Welcome to Info Prof!")
+    #st.text(f"To get started, create a new chat session on your left!")
+    #st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+else:
+    st.session_state.messages = []
     st.title(f"Welcome to Info Prof!")
     st.text(f"To get started, create a new chat session on your left!")
     st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+
 
 # Display chat messages from history
 if st.session_state.messages:
     for index, message in enumerate(st.session_state.messages):
         message_content = message["content"][0]['text']
-        with st.chat_message(message["role"]):
-            col1, col2 = st.columns([9, 1])
-            with col1:
-                st.markdown(message_content)
-            with col2:
-                if st.button(label="Play TTS", key=f'play-{index}', use_container_width=True):
-                    audio_file = text_to_speech(message_content)  # Converting text to speech
-                    st.audio(audio_file, format="audio/mp3", start_time=0)  #This is for playing audio
-                    os.remove(audio_file)  # Delete the audio file after playback
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            st.chat_message(message["role"]).markdown(message_content)
 
-if chatTopic != "" and st.button("Clear Chat History"):
-    print(chatTopic)
-    clear_chat_history(chatTopic)  
-    st.session_state.messages = []  # This is for clearing session state messages
-    time.sleep(2)
-    st.success("History Cleared!")
+        with col2:
+            if st.button(label="TTS 🎙️", key=f'play-{index}-{chatTopic}', use_container_width=True):
+                audio_file = text_to_speech(message_content)  # Converting text to speech
+                st.audio(audio_file, format="audio/mp3", start_time=0)  #This is for playing audio
+                os.remove(audio_file)  # Delete the audio file after playback
+            
+#if chatTopic != "" and st.button("Clear Chat History"):
+    #print(chatTopic)
+    #clear_chat_history(chatTopic)  
+    #st.session_state.messages = []  # This is for clearing session state messages
+    #time.sleep(2)
+    #st.success("History Cleared!")
     # streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 # Accept user input
@@ -118,6 +136,7 @@ if prompt := st.chat_input("What is up?"):
 
     
     audio_file = text_to_speech(response) #this is for converting text to speech
+    st.session_state.audio_file = audio_file
     st.audio(audio_file, format="audio/mp3", start_time=0) #This is for playing audio
     os.remove(audio_file)   # Delete the audio file after playback
 
