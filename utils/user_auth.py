@@ -37,6 +37,9 @@ class UserAuth:
         except Exception as e:
             st.error(e)
 
+    def get_authenticator(self):
+        return self.authenticator
+
 
 # with open('../auth_config.yaml') as file:
 #     config = yaml.load(file, Loader=SafeLoader)
