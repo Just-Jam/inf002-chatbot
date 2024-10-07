@@ -7,7 +7,6 @@ def LoginPage():
     st.page_link("pages/Registration.py", label="Register")
     if st.session_state['authentication_status']:
         st.write(f'Welcome *{st.session_state["name"]}*')
-        st.title('Some content')
         st.switch_page('main.py')
 
 if __name__ == '__main__':

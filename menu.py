@@ -7,12 +7,11 @@ def menu():
     auth = UserAuth()
     st.session_state['authenticator'] = auth.get_authenticator()
     try:
-        st.session_state['authenticator'].login(location='unrendered')
+        st.session_state['authenticator'].login(location='sidebar')
     except stauth.LoginError as e:
         st.error(e)
 
     if st.session_state['authentication_status'] is None or False:
-        st.sidebar.page_link("pages/Login.py", label="Log in")
         st.sidebar.page_link("pages/Registration.py", label="Register")
     else:
         with st.sidebar:

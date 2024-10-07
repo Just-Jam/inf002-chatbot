@@ -5,11 +5,7 @@ from openai import AzureOpenAI as AOI
 import json
 import httpx
 import uuid
-# from langchain_openai import AzureOpenAIEmbeddings
-# from openai import embeddings, azure_endpoint, api_key
 
-load_dotenv()
-#TODO:  Sync DB with  azure chat history
 '''
 This class handles AzureOpenAI chatbot api calls. The class itself handles and stores up to 20 previous messages.
 generate_response_gpt4om() updates conversation history and returns the latest chatbot response.
@@ -19,6 +15,9 @@ import AzureOpenAI
 azureOpenAI = AzureOpenAI()
 azureOpenAI.generate_response_gpt4om(prompt)
 '''
+
+load_dotenv()
+
 class AzureOpenAI:
     API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
     ENDPOINT = "https://openaisit.openai.azure.com/"
