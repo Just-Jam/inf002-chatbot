@@ -12,7 +12,11 @@ def syncMessagesWithDB(messages: list, chatTopic):
     for message in messages:
         role = message['role']
         content = message['content'][0]['text']
-        save_msg(chatTopic, role, content)
+        id = st.session_state['username']
+        if id == None:
+            id = "main"
+        print(">>>>>>>>>>>>>>",id)
+        save_msg(chatTopic, role, content, id)
     return True
 
 def fetchMessagesFromDB(chatTopic):
@@ -35,26 +39,35 @@ def main():
     )
 
     menu()
-    chatTopic = sidebar("main")
-    azureOpenAI = AzureOpenAI()
     messages = []
-
-    if chatTopic:
-        # Load chat history for the selected session
-        messages = fetchMessagesFromDB(chatTopic)
-        azureOpenAI.update_chat_history(messages)
-        st.title(f"Chat Session: {chatTopic}")
-        # Remove system message
-        messages.pop(0)
-
-    if chatTopic == "":
+    azureOpenAI = AzureOpenAI()
+    chatTopic = ""
+    
+    if st.session_state['authentication_status'] is None or False:
         st.title(f"Welcome to Info Prof!")
         st.text(f"To get started, create a new chat session on your left!")
         st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
-
-    # elif 'username' in st.session_state:
-    #     user_id = st.session_state['username']
-    #     st.title(f"Welcome Back {user_id}!")
+    else:
+        st.title(f"Welcome back {st.session_state['username']}!")
+        chatTopic = sidebar(st.session_state['username'])
+    
+        if chatTopic:
+            print("Chattopic: ", chatTopic)
+            # Load chat history for the selected session
+            messages = fetchMessagesFromDB(chatTopic)
+            azureOpenAI.update_chat_history(messages)
+            #st.title(f"Chat Session: {chatTopic}")
+            # Remove system message
+            messages.pop(0)
+        # elif 'username' in st.session_state:
+        #     user_id = st.session_state['username']
+        #     st.title(f"Welcome Back {user_id}!")
+        if chatTopic != "" and st.button("Clear Chat History"):
+            clear_chat_history(chatTopic)
+            time.sleep(2)
+            st.success("History Cleared!")
+            st.rerun()
+            # streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
     # Display chat messages from history
     for index, message in enumerate(messages):
@@ -70,12 +83,7 @@ def main():
                     st.audio(audio_file, format="audio/mp3", start_time=0)  # This is for playing audio
                     os.remove(audio_file)  # Delete the audio file after playbacke audio file after playback
 
-    if chatTopic != "" and st.button("Clear Chat History"):
-        print(chatTopic)
-        clear_chat_history(chatTopic)
-        time.sleep(2)
-        st.success("History Cleared!")
-        # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+    
 
     # Accept user input
     if prompt := st.chat_input("What is up?"):
@@ -83,22 +91,36 @@ def main():
         with st.chat_message("user"):
             st.markdown(prompt)
         # Add user message to chat history
-        user_message = {
-            'role': 'user',
-            'content': [{"type": "text", "text": prompt}]
-        }
+        
+        
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
         # Add assistant response to chat history
-        assistant_message = {
+        
+        assistant_msg(response)
+        syncMessagesWithDB([user_msg(prompt), assistant_msg(response)], chatTopic)
+        #st.rerun()
+
+
+def user_msg(prompt):
+    user_message = {
+            'role': 'user',
+            'content': [{"type": "text", "text": prompt}]
+        }
+    return user_message
+
+def assistant_msg(response):
+    assistant_message = {
             'role': 'assistant',
             'content': [{"type": "text", "text": response}]
         }
+    return assistant_message
 
-        syncMessagesWithDB([user_message, assistant_message], chatTopic)
-        st.rerun()
+
+
+
 
 if __name__ == '__main__':
     main()

@@ -33,7 +33,7 @@ class UserAuth:
                 with open('auth_config.yaml', 'w') as file:
                     yaml.dump(self.config, file, default_flow_style=False)
                 st.success('User registered successfully')
-                st.switch_page("pages/Login.py")
+                st.switch_page("main.py")
         except Exception as e:
             st.error(e)
 

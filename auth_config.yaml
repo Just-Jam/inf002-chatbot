@@ -1,6 +1,6 @@
 cookie:
   expiry_days: 30
-  key: "critical thinking make me cry"
+  key: critical thinking make me cry
   name: chocolate
 credentials:
   usernames:
@@ -11,6 +11,15 @@ credentials:
       logged_in: false
       password: $2b$12$xlmQ9eDGGTvpDA8DlmZL/uzEXYb4qDCCklDUQtDKlxkC30weoPClm
       password_hint: '1'
+      roles:
+      - user
+    cavell:
+      email: Cavell@email.com
+      first_name: Cavell
+      last_name: Lim
+      logged_in: false
+      password: $2b$12$dfpP0q/1vYy752Mxp4ZxieT96F4Hh8/dqsLZbloxWxV55rFp9MP0e
+      password_hint: P@55w0rd
       roles:
       - user
     jsmith:
@@ -24,6 +33,15 @@ credentials:
       - admin
       - editor
       - viewer
+    lee:
+      email: Lee@email.com
+      first_name: Chester
+      last_name: Lee
+      logged_in: false
+      password: $2b$12$O2RR0FMx56FABzbQN.N6Dee8n0MgvvFwby9P7j3MXgrljyim.xVDO
+      password_hint: P@55w0rd
+      roles:
+      - user
     rbriggs:
       email: rbriggs@gmail.com
       failed_login_attempts: 0
@@ -40,6 +58,24 @@ credentials:
       logged_in: false
       password: $2b$12$8DXL/SrQA7F7PIIfWkKK0OdQ35D3omXDaoBE65uBgtGhrSsxJIR2a
       password_hint: '1'
+      roles:
+      - user
+    test:
+      email: Test@email.com
+      first_name: Tester
+      last_name: Tester
+      logged_in: false
+      password: $2b$12$L4w82gFSk0h4yAeBokNAP.6oVVlf4r9EXeIK/ACOqqajAcgfLHyt2
+      password_hint: P@55w0rd
+      roles:
+      - user
+    tester2:
+      email: Tester2@email.com
+      first_name: TesterTwo
+      last_name: TesterTwo
+      logged_in: false
+      password: $2b$12$QO.vREvEHwhAte8mgOlX/Ot.72qm3vHB/ZNwPuvvQFSQ0WeIMCQGa
+      password_hint: P@55w0rd
       roles:
       - user
 oauth2:

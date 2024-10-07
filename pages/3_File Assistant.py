@@ -70,7 +70,11 @@ def syncMessagesWithDB(messages: list):
     for message in messages:
         role = message['role']
         content = message['content'][0]['text']
-        save_msg(chatTopic, role, content, GROUP_ID)
+        id = st.session_state['username']
+        if id == None:
+            id = "main"
+        print(">>>>>>>>>>>>>>",id)
+        save_msg(chatTopic, role, content, id)
     return True
 
 def fetchMessagesFromDB(chatTopic):
@@ -98,7 +102,7 @@ def summarize_text(content):
     }
 
     syncMessagesWithDB([assistant_message])
-    st.rerun()
+    #st.rerun()
 
 
 st.set_page_config(
@@ -108,11 +112,13 @@ st.set_page_config(
 menu()
 
 
-GROUP_ID = "file_assistant"
-chatTopic = sidebar(GROUP_ID)
+# GROUP_ID = "file_assistant"
+# chatTopic = sidebar(GROUP_ID)
 azureOpenAI = getAzureopenAI()
 messages = []
 summarize_btn = None
+
+chatTopic = ""
 
 #file upload UI
 if 'uploaded_file' not in st.session_state:
@@ -140,20 +146,41 @@ if uploaded_file:
         azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
 
 
-if chatTopic:
-    # Load chat history for the selected session
-    messages = fetchMessagesFromDB(chatTopic)
-    azureOpenAI.update_chat_history(messages)
-    st.title(f"Chat Session: {chatTopic}")
-    #Remove system message
-    messages.pop(0)
+# if chatTopic:
+#     # Load chat history for the selected session
+#     messages = fetchMessagesFromDB(chatTopic)
+#     azureOpenAI.update_chat_history(messages)
+#     st.title(f"Chat Session: {chatTopic}")
+#     #Remove system message
+#     messages.pop(0)
 
 
-if chatTopic ==  "":
-    st.title(f"Welcome to File Assistant!")
-    st.text(f"To get started, create a new chat session on your left!")
-    st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+if st.session_state['authentication_status'] is None or False:
+        st.title(f"Welcome to Info Prof!")
+        st.text(f"To get started, create a new chat session on your left!")
+        st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+else:
+    st.title(f"Welcome back {st.session_state['username']}!")
+    chatTopic = sidebar(st.session_state['username'])
 
+    if chatTopic:
+        print("Chattopic: ", chatTopic)
+        # Load chat history for the selected session
+        messages = fetchMessagesFromDB(chatTopic)
+        azureOpenAI.update_chat_history(messages)
+        #st.title(f"Chat Session: {chatTopic}")
+        # Remove system message
+        messages.pop(0)
+    if chatTopic != "" and st.button("Clear Chat History"):
+        print(chatTopic)
+        clear_chat_history(chatTopic)
+        time.sleep(2)
+        st.success("History Cleared!")
+        st.rerun()
+    # elif 'username' in st.session_state:
+    #     user_id = st.session_state['username']
+    #     st.title(f"Welcome Back {user_id}!")
+    
 # Display chat messages from history
 for message in messages:
     message_content = message["content"][0]['text']
@@ -165,11 +192,7 @@ for message in messages:
             if st.button(label="TTS", key=uuid.uuid4(), use_container_width=True):
                 print("TTS")
 
-if chatTopic != "" and st.button("Clear Chat History"):
-    print(chatTopic)
-    clear_chat_history(chatTopic)
-    time.sleep(2)
-    st.success("History Cleared!")
+
     # streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 # Accept user input

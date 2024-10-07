@@ -17,7 +17,7 @@ def init_db():
     return conn
 
 # Save msg with session_id
-def save_msg(session_id, sender, msg, group_id="main"):
+def save_msg(session_id, sender, msg, group_id):
     if not session_id:  # Ensure session_id is not empty
         session_id = "default_session"  # Provide a default session ID
     conn = sqlite3.connect('chat_history.db')
