@@ -2,6 +2,7 @@ import streamlit as st
 from database.database import get_sessions, save_msg
 from api.azure import AzureOpenAI
 import time
+
 def response_generator(prompt, azureOpenAI):
     response = azureOpenAI.generate_response_gpt4om(prompt)
     for word in response.split():
@@ -48,7 +49,6 @@ def sidebar(group_id):
         if chatTopic and chatTopic not in sessions:
             st.sidebar.success(f"New chat session '{chatTopic}' created.")
             azureOpenAI = AzureOpenAI()
-            
             
             syncMessagesWithDB([user_msg("Hello"), assistant_msg(st.write_stream(response_generator("Hello", azureOpenAI=azureOpenAI)))], chatTopic)
             st.rerun()

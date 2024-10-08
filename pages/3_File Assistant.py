@@ -142,9 +142,6 @@ if uploaded_file:
     # Provide options to summarize
     summarize_btn = st.button("Summarize")
 
-    if st.button("Test"):
-        azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
-
 
 # if chatTopic:
 #     # Load chat history for the selected session

@@ -42,13 +42,39 @@ def main():
     messages = []
     azureOpenAI = AzureOpenAI()
     chatTopic = ""
-    
+
+    #Guest chat logic
     if st.session_state['authentication_status'] is None or False:
-        st.title(f"Welcome to Info Prof!")
-        st.text(f"To get started, create a new chat session on your left!")
-        st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
+        st.title("Welcome to chatbot")
+        # Initialize chat history
+        if "guest_messages" not in st.session_state:
+            st.session_state.guest_messages = []
+
+        # Display chat messages from history on app rerun
+        for message in st.session_state.guest_messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Accept user input
+        if prompt := st.chat_input("What is up?"):
+            # Add user message to chat history
+            st.session_state.guest_messages.append({"role": "user", "content": prompt})
+            # Display user message in chat message container
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                response = st.write_stream(response_generator(prompt, azureOpenAI))
+            # Add assistant response to chat history
+            st.session_state.guest_messages.append({"role": "assistant", "content": response})
+
+
+    #User is authenticated
     else:
         st.title(f"Welcome back {st.session_state['username']}!")
+        st.text(f"To get started, create a new chat session on your left!")
+        st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
         chatTopic = sidebar(st.session_state['username'])
     
         if chatTopic:
@@ -69,39 +95,38 @@ def main():
             st.rerun()
             # streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
-    # Display chat messages from history
-    for index, message in enumerate(messages):
-        message_content = message["content"][0]['text']
-        with st.chat_message(message["role"]):
-            col1, col2 = st.columns([9, 1])
-            with col1:
-                st.markdown(message_content)
-            with col2:
-                if st.button(label="Play TTS", key=f'play-{index}', use_container_width=True):
-                    print("hello")
-                    audio_file = text_to_speech(message_content)  # Converting text to speech
-                    st.audio(audio_file, format="audio/mp3", start_time=0)  # This is for playing audio
-                    os.remove(audio_file)  # Delete the audio file after playbacke audio file after playback
+        # Display chat messages from history
+        for index, message in enumerate(messages):
+            message_content = message["content"][0]['text']
+            with st.chat_message(message["role"]):
+                col1, col2 = st.columns([9, 1])
+                with col1:
+                    st.markdown(message_content)
+                with col2:
+                    if st.button(label="Play TTS", key=f'play-{index}', use_container_width=True):
+                        print("hello")
+                        audio_file = text_to_speech(message_content)  # Converting text to speech
+                        st.audio(audio_file, format="audio/mp3", start_time=0)  # This is for playing audio
+                        os.remove(audio_file)  # Delete the audio file after playbacke audio file after playback
 
     
 
-    # Accept user input
-    if prompt := st.chat_input("What is up?"):
-        # Display user message in chat message container
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        # Add user message to chat history
-        
-        
+        # Accept user input
+        if prompt := st.chat_input("What is up?"):
+            # Display user message in chat message container
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            # Add user message to chat history
 
-        # Display assistant response in chat message container
-        with st.chat_message("assistant"):
-            response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
-        # Add assistant response to chat history
-        
-        assistant_msg(response)
-        syncMessagesWithDB([user_msg(prompt), assistant_msg(response)], chatTopic)
-        #st.rerun()
+
+
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
+            # Add assistant response to chat history
+            assistant_msg(response)
+            syncMessagesWithDB([user_msg(prompt), assistant_msg(response)], chatTopic)
+            #st.rerun()
 
 
 def user_msg(prompt):
@@ -117,10 +142,6 @@ def assistant_msg(response):
             'content': [{"type": "text", "text": response}]
         }
     return assistant_message
-
-
-
-
 
 if __name__ == '__main__':
     main()
