@@ -65,19 +65,19 @@ def authenticated_chat(azureOpenAI):
         st.success("History Cleared!")
         st.rerun()
 
-    # Display chat messages from history
-    for index, message in enumerate(messages):
+# Display chat messages from history
+if st.session_state.messages:
+    for index, message in enumerate(st.session_state.messages):
         message_content = message["content"][0]['text']
-        with st.chat_message(message["role"]):
-            col1, col2 = st.columns([9, 1])
-            with col1:
-                st.markdown(message_content)
-            with col2:
-                if st.button(label="Play TTS", key=f'play-{index}', use_container_width=True):
-                    print("hello")
-                    audio_file = text_to_speech(message_content)  # Converting text to speech
-                    st.audio(audio_file, format="audio/mp3", start_time=0)  # This is for playing audio
-                    os.remove(audio_file)  # Delete the audio file after playbacke audio file after playback
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            st.chat_message(message["role"]).markdown(message_content)
+
+        with col2:
+            if st.button(label="TTS 🎙️", key=f'play-{index}-{chatTopic}', use_container_width=True):
+                audio_file = text_to_speech(message_content)  # Converting text to speech
+                st.audio(audio_file, format="audio/mp3", start_time=0)  #This is for playing audio
+                os.remove(audio_file)  # Delete the audio file after playback
 
     # Accept user input
     if prompt := st.chat_input("What is up?"):
