@@ -65,9 +65,8 @@ def authenticated_chat(azureOpenAI):
         st.success("History Cleared!")
         st.rerun()
 
-# Display chat messages from history
-if st.session_state.messages:
-    for index, message in enumerate(st.session_state.messages):
+
+    for index, message in enumerate(messages):
         message_content = message["content"][0]['text']
         col1, col2 = st.columns([5, 1])
         with col1:
