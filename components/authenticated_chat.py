@@ -56,7 +56,6 @@ def authenticated_chat(azureOpenAI):
         messages = fetchMessagesFromDB(chatTopic)
         azureOpenAI.update_chat_history(messages)
         # Remove system message
-        print(messages)
         messages.pop(0)
 
     if chatTopic != "" and st.button("Clear Chat History"):

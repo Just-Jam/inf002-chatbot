@@ -4,13 +4,10 @@ import time
 import uuid
 from api.azure import AzureOpenAI
 from components.sidebar import sidebar
-from database import load_chat_history, save_msg, clear_chat_history
+from database.database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
-import fitz  # PyMuPDF for handling PDF files
+import pymupdf  # PyMuPDF for handling PDF files
 from docx import Document  # Document class from the python-docx library
-
-
-# import streamlit_js_eval
 
 # Function to handle .txt files
 def extract_text_from_txt(file):
@@ -31,14 +28,13 @@ def extract_text_from_docx(file):
 # Function to handle .pdf files
 def extract_text_from_pdf(file):
     """Extract text from a PDF file using PyMuPDF (fitz)"""
-    pdf_document = fitz.open(stream=file.read(), filetype="pdf")
+    pdf_document = pymupdf.open(stream=file.read(), filetype="pdf")
     text = ""
     for page_num in range(len(pdf_document)):
         page = pdf_document.load_page(page_num)
         text += page.get_text()
     pdf_document.close()
     return text
-
 
 # Function to handle file uploads
 def handle_file_upload(uploaded_file):

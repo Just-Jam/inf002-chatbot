@@ -23,7 +23,7 @@ class AzureOpenAI:
     ENDPOINT = "https://openaisit.openai.azure.com/"
     GPT_4OM_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/gpt-4o-mini-25k/chat/completions?api-version=2024-02-15-preview"
     EMBEDDING_ENDPOINT = "https://openaisit.openai.azure.com/openai/deployments/text-embedding-3-small/embeddings?api-version=2023-05-15"
-    DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information."
+    DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information.1"
     MAX_MESSAGE_COUNT = 30
 
     def __init__(self):
@@ -78,11 +78,6 @@ class AzureOpenAI:
 
     def update_chat_history(self, messages: list[dict]):
         self._messages = messages
-        sys_msg = {
-            "role": "system",
-            "content": [{"type": "text", "text": self.DEFAULT_SYS_MESSAGE}]
-        }
-        self._messages.insert(0, sys_msg)
         return True
 
     # def generate_embeddings(self, file):

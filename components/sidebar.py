@@ -3,6 +3,8 @@ from database.database import get_sessions, save_msg
 from api.azure import AzureOpenAI
 import time
 
+DEFAULT_SYS_MESSAGE: str = "You are an AI assistant that helps people find information."
+
 def response_generator(prompt, azureOpenAI):
     response = azureOpenAI.generate_response_gpt4om(prompt)
     for word in response.split():
@@ -34,6 +36,13 @@ def assistant_msg(response):
         }
     return assistant_message
 
+def create_new_session(chatTopic):
+    system_message = {
+        "role": "system",
+        "content": [{"type": "text", "text": DEFAULT_SYS_MESSAGE}]
+    }
+    syncMessagesWithDB([system_message], chatTopic)
+
 def sidebar(group_id):
     st.sidebar.title("Previous chat topics")
     
@@ -48,9 +57,8 @@ def sidebar(group_id):
 
         if chatTopic and chatTopic not in sessions:
             st.sidebar.success(f"New chat session '{chatTopic}' created.")
-            azureOpenAI = AzureOpenAI()
             
-            syncMessagesWithDB([user_msg("Hello"), assistant_msg(st.write_stream(response_generator("Hello", azureOpenAI=azureOpenAI)))], chatTopic)
+            create_new_session(chatTopic)
             st.rerun()
     else:
         chatTopic = session_selection
