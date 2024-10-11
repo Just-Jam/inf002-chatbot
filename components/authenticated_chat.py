@@ -1,6 +1,5 @@
 import os
 import time
-
 import streamlit as st
 from components.sidebar import sidebar
 from database.database import load_chat_history, clear_chat_history, save_msg
@@ -82,8 +81,7 @@ def authenticated_chat(azureOpenAI):
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(prompt)
-        # Add user message to chat history
-
+            
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))

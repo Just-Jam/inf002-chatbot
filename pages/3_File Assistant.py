@@ -8,6 +8,8 @@ from database.database import load_chat_history, save_msg, clear_chat_history
 from utils.sql_api_utils import tuple_to_azure_message
 import pymupdf  # PyMuPDF for handling PDF files
 from docx import Document  # Document class from the python-docx library
+from menu import menu
+from components.authenticated_chat import authenticated_chat
 
 # Function to handle .txt files
 def extract_text_from_txt(file):
@@ -23,7 +25,6 @@ def extract_text_from_docx(file):
     for paragraph in doc.paragraphs:
         full_text.append(paragraph.text)
     return '\n'.join(full_text)
-
 
 # Function to handle .pdf files
 def extract_text_from_pdf(file):
@@ -92,17 +93,15 @@ def file_upload(azureOpenAI):
             azureOpenAI.generate_embeddings(st.session_state.uploaded_file_content)
 
 
-# @st.cache_resource
-def getAzureopenAI():
-    azureOpenAI = AzureOpenAI()
-    return azureOpenAI
-
-
-def syncMessagesWithDB(messages: list):
+def syncMessagesWithDB(messages: list, chatTopic):
     for message in messages:
         role = message['role']
         content = message['content'][0]['text']
-        save_msg(chatTopic, role, content, GROUP_ID)
+        id = st.session_state['username']
+        if id == None:
+            id = "main"
+        print(">>>>>>>>>>>>>>",id)
+        save_msg(chatTopic, role, content, id)
     return True
 
 
@@ -132,7 +131,8 @@ def summarize_text(content):
         'content': [{"type": "text", "text": response}]
     }
 
-    syncMessagesWithDB([assistant_message])
+    #To be fixed
+    syncMessagesWithDB([assistant_message], chatTopic=sidebar(st.session_state['username']))
 
 
 st.set_page_config(
@@ -140,62 +140,14 @@ st.set_page_config(
     page_icon="👋",
 )
 
-GROUP_ID = "file_assistant"
-chatTopic = sidebar(GROUP_ID)
-azureOpenAI = getAzureopenAI()
-messages = []
-file_upload(azureOpenAI)
-
-if chatTopic:
-    # Load chat history for the selected session
-    messages = fetchMessagesFromDB(chatTopic)
-    azureOpenAI.update_chat_history(messages)
-    st.title(f"Chat Session: {chatTopic}")
-    # Remove system message
-    messages.pop(0)
-
-if chatTopic == "":
-    st.title(f"Welcome to File Assistant!")
+menu()
+azureOpenAI = AzureOpenAI()
+chatTopic = ""
+#User is authenticated
+if st.session_state['authentication_status']:
+    file_upload(azureOpenAI)
+    st.title(f"Welcome back {st.session_state['username']}!")
     st.text(f"To get started, create a new chat session on your left!")
     st.text(f"Alternatively, pick up where you left off by selecting a previous chat session!")
 
-# Display chat messages from history
-for message in messages:
-    message_content = message["content"][0]['text']
-    with st.chat_message(message["role"]):
-        col1, col2 = st.columns([9, 1])
-        with col1:
-            st.markdown(message_content)
-        with col2:
-            if st.button(label="TTS", key=uuid.uuid4(), use_container_width=True):
-                print("TTS")
-
-if chatTopic != "" and st.button("Clear Chat History"):
-    print(chatTopic)
-    clear_chat_history(chatTopic)
-    time.sleep(2)
-    st.success("History Cleared!")
-    # streamlit_js_eval(js_expressions="parent.window.location.reload()")
-
-# Accept user input
-if prompt := st.chat_input("What is up?"):
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    # Add user message to chat history
-    user_message = {
-        'role': 'user',
-        'content': [{"type": "text", "text": prompt}]
-    }
-
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        response = st.write_stream(response_generator(prompt, azureOpenAI=azureOpenAI))
-    # Add assistant response to chat history
-    assistant_message = {
-        'role': 'assistant',
-        'content': [{"type": "text", "text": response}]
-    }
-
-    syncMessagesWithDB([user_message, assistant_message])
-
+    authenticated_chat(azureOpenAI)
