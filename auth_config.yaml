@@ -33,6 +33,15 @@ credentials:
       - admin
       - editor
       - viewer
+    kay:
+      email: Kay@gmail.com
+      first_name: Kay
+      last_name: Tan
+      logged_in: false
+      password: $2b$12$LMlUSz7CW6.nU2uG9bwwXeLp5e.mLz.vilhP/ipHob140tc1V6Mum
+      password_hint: P@55w0rd
+      roles:
+      - user
     lee:
       email: Lee@email.com
       first_name: Chester

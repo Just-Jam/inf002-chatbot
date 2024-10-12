@@ -1,8 +1,6 @@
 import sqlite3
 import uuid
 # Initialize the database with session support
-#myUUID = uuid.uuid4()
-
 def init_db():
     conn = sqlite3.connect('chat_history.db')
     c = conn.cursor()
@@ -20,6 +18,7 @@ def init_db():
 def save_msg(session_id, sender, msg, group_id):
     if not session_id:  # Ensure session_id is not empty
         session_id = "default_session"  # Provide a default session ID
+    
     conn = sqlite3.connect('chat_history.db')
     c = conn.cursor()
     c.execute("INSERT INTO chats (session_id, sender, msg, group_id) VALUES (?, ?, ?, ?)",
@@ -36,7 +35,7 @@ def load_chat_history(session_id) -> list[tuple]:
     conn.close()
     return chat_history
 
-# Get all session_ids to display in sidebar
+# Get all past chat topics based on session id to display in sidebar
 def get_sessions(group_id):
     conn = sqlite3.connect('chat_history.db')
     c = conn.cursor()
@@ -44,6 +43,16 @@ def get_sessions(group_id):
     sessions = c.fetchall()
     conn.close()
     return [s[0] for s in sessions]  # Convert from list of tuples to list
+
+
+def get_all_sessions():
+    conn = sqlite3.connect('chat_history.db')
+    c = conn.cursor()
+    c.execute("SELECT session_id FROM chats")
+    sessions = c.fetchall()
+    conn.close()
+    return [s[0] for s in sessions]  # Convert from list of tuples to list
+
 
 
 def clear_chat_history(session_id):
